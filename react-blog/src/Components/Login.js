@@ -54,7 +54,7 @@ const Login = () => {
           const token=response.data.token;
           // console.log("ere we are", response.data);
           console.log("token", token);
-          Cookies.set('token', token, { httpOnly: true });
+          Cookies.set('token', token);
 
           setToken(token);
 

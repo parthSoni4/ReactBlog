@@ -6,7 +6,7 @@ const configDotenv = require("dotenv/config.js");
 const { createClient } = require("@supabase/supabase-js");
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
 // the above statement will parse the incomimg requests
@@ -20,6 +20,7 @@ app.use(cors({
   optionsSuccessStatus: 204, // No Content for preflight requests
 }));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // cors stands for cross origin resource sharing
 // it allow server to respond to request that are from different origin
@@ -113,23 +114,64 @@ app.post("/login", async (req, res) => {
 
 // Endpoint to retrieve user details based on the token
 app.get('/get-user-details', (req, res) => {
-  console.log(req.body);
-  const token = req.body.token;
-  console.log("here is the token 2", token);
-  // Verify the token
-  jwt.verify(token, secretKey, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Token is not valid' });
+    const token=req.headers.authorization;
+    console.log("Our token", token);
+
+
+    // the below statment will work if the token is empty
+    if(!token)
+    {
+      return res.status(401).json({
+        message: "Unauthorized - token is missing "
+      });
     }
 
-    // Get the user ID from the decoded token
-    const userId = decoded.userId;
+    jwt.verify(token.replace("Bearer ", ""), secretKey, async (err, decode)=>{
+      if(err)
+      {
+        console.log("there is some error", token);
+        return res.status(401).json({
+          message: "Unauthorized- Token is not valid"
+        })
+      }
+      console.log(" the decoded one is here to",decode);
+      const userId=decode.userId;
 
-    console.log(userId);
 
-    res.send("good");
+      try{
+        const { data, error}= await supabase
+        .from("users")
+        .select("*")
+        .eq('id', userId)
+        .single();
+
+        if(error)
+        {
+          console.log("supabase error", error);
+          return res.status(500).json({
+            message: "Internal server error"
+          })
+        }
+
+        res.json({
+          message: "success", userData: data
+        });
+      }catch(error)
+      {
+        console.error('Error fetching user data from Supabase:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+      }
+
+      // now here token will be valid
+
+    })
+
+
+
+  
+    // res.send("good");
   });
-});
+
 
 
 
