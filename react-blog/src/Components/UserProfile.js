@@ -10,6 +10,12 @@ export default function UserProfile() {
 
     const [name, setName]=useState([]);
     const [email, setEmail]=useState([]);
+    const navigate = useNavigate("/root");
+
+
+    const CreatingBlog=()=>{
+        navigate("../CreateBlog");
+    }
 
 
     useEffect(() => {
@@ -52,6 +58,9 @@ export default function UserProfile() {
     </div>
     <div>
       <strong>Email:</strong> <span id="userEmail">{email}</span>
+    </div>
+    <div className="">
+      <button onClick={CreatingBlog}>Create Blogs</button>
     </div>
   </div>
     
